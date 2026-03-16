@@ -1,0 +1,197 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* ── Sharp Grotesk ── */
+@font-face {
+  font-family: 'Sharp Grotesk';
+  src: url('/fonts/SharpGroteskSmBold20.woff') format('woff'),
+       url('/fonts/SharpGroteskSmBold20.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Sharp Grotesk';
+  src: url('/fonts/SharpGroteskSmBoldItalic20.woff') format('woff'),
+       url('/fonts/SharpGroteskSmBoldItalic20.ttf') format('truetype');
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Sharp Grotesk';
+  src: url('/fonts/SharpGroteskBold20.woff') format('woff'),
+       url('/fonts/SharpGroteskBold20.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Sharp Grotesk';
+  src: url('/fonts/SharpGroteskMedium20.woff') format('woff'),
+       url('/fonts/SharpGroteskMedium20.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Sharp Grotesk';
+  src: url('/fonts/SharpGroteskBook20.woff') format('woff'),
+       url('/fonts/SharpGroteskBook20.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@custom-variant dark (&:is(.dark *));
+
+/* ── WSB Brand Tokens — edit these to retheme the entire app ── */
+:root {
+    /* Raw brand values */
+    --wsb-navy:           #0D2E5F;
+    --wsb-gold:           #f0c020;
+    --wsb-blue:           #0751b9;
+    --wsb-blue-bright:    #0b64df;
+    --wsb-bg-page:        #f9f9f9;
+    --wsb-bg-card:        #fbfeff;
+    --wsb-text-base:      #090a0c;
+    --wsb-text-body:      rgba(9,10,12,0.9);
+    --wsb-text-secondary: rgba(9,10,12,0.7);
+    --wsb-text-muted:     rgba(9,10,12,0.55);
+    --wsb-bg-muted:       rgba(13,46,95,0.05);
+    --wsb-blue-wash:      #E0E7ED;
+    --wsb-border-brand:   rgba(13,46,95,0.2);
+    --wsb-border-subtle:  rgba(0,0,0,0.08);
+    --wsb-kp-shadow:      4px 4px 0px rgba(13,46,95,0.35);
+
+    /* shadcn tokens → WSB values (keeps shadcn components on-brand automatically) */
+    --background:          var(--wsb-bg-page);
+    --foreground:          var(--wsb-text-base);
+    --card:                var(--wsb-bg-card);
+    --card-foreground:     var(--wsb-text-base);
+    --popover:             var(--wsb-bg-card);
+    --popover-foreground:  var(--wsb-text-base);
+    --primary:             var(--wsb-blue);
+    --primary-foreground:  #ffffff;
+    --secondary:           var(--wsb-blue-wash);
+    --secondary-foreground: var(--wsb-navy);
+    --muted:               #e8e8e8;
+    --muted-foreground:    var(--wsb-text-muted);
+    --accent:              var(--wsb-blue);
+    --accent-foreground:   #ffffff;
+    --ring:                var(--wsb-blue);
+    --border:              rgba(12,10,9,0.12);
+    --input:               rgba(12,10,9,0.12);
+    --destructive:         oklch(0.577 0.245 27.325);
+    --radius:              0.625rem;
+    --chart-1: oklch(0.865 0.127 207.078);
+    --chart-2: oklch(0.715 0.143 215.221);
+    --chart-3: oklch(0.609 0.126 221.723);
+    --chart-4: oklch(0.52 0.105 223.128);
+    --chart-5: oklch(0.45 0.085 224.283);
+    --sidebar:             #e8e8e8;
+    --sidebar-foreground:  var(--wsb-text-base);
+    --sidebar-primary:     var(--wsb-blue);
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent:      #e8e8e8;
+    --sidebar-accent-foreground: var(--wsb-text-base);
+    --sidebar-border:      rgba(12,10,9,0.12);
+    --sidebar-ring:        var(--wsb-blue);
+}
+
+.dark {
+    --background: oklch(0.147 0.004 49.3);
+    --foreground: oklch(0.986 0.002 67.8);
+    --card: oklch(0.214 0.009 43.1);
+    --card-foreground: oklch(0.986 0.002 67.8);
+    --popover: oklch(0.214 0.009 43.1);
+    --popover-foreground: oklch(0.986 0.002 67.8);
+    --primary: #4a8fe8;
+    --primary-foreground: #ffffff;
+    --secondary: oklch(0.268 0.011 36.5);
+    --secondary-foreground: oklch(0.986 0.002 67.8);
+    --muted: oklch(0.268 0.011 36.5);
+    --muted-foreground: oklch(0.714 0.014 41.2);
+    --accent: #4a8fe8;
+    --accent-foreground: #ffffff;
+    --destructive: oklch(0.704 0.191 22.216);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: #4a8fe8;
+    --chart-1: oklch(0.865 0.127 207.078);
+    --chart-2: oklch(0.715 0.143 215.221);
+    --chart-3: oklch(0.609 0.126 221.723);
+    --chart-4: oklch(0.52 0.105 223.128);
+    --chart-5: oklch(0.45 0.085 224.283);
+    --sidebar: oklch(0.214 0.009 43.1);
+    --sidebar-foreground: oklch(0.986 0.002 67.8);
+    --sidebar-primary: #4a8fe8;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: oklch(0.268 0.011 36.5);
+    --sidebar-accent-foreground: oklch(0.986 0.002 67.8);
+    --sidebar-border: oklch(1 0 0 / 10%);
+    --sidebar-ring: #6b8db8;
+}
+
+@theme inline {
+    --font-sans: 'Poppins', 'Noto Sans TC', sans-serif;
+    --color-body: var(--wsb-text-body);
+    --color-secondary-text: var(--wsb-text-secondary);
+    --color-muted-text: var(--wsb-text-muted);
+    --color-sidebar-ring: var(--sidebar-ring);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar: var(--sidebar);
+    --color-chart-5: var(--chart-5);
+    --color-chart-4: var(--chart-4);
+    --color-chart-3: var(--chart-3);
+    --color-chart-2: var(--chart-2);
+    --color-chart-1: var(--chart-1);
+    --color-ring: var(--ring);
+    --color-input: var(--input);
+    --color-border: var(--border);
+    --color-destructive: var(--destructive);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-accent: var(--accent);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-muted: var(--muted);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-secondary: var(--secondary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-primary: var(--primary);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-popover: var(--popover);
+    --color-card-foreground: var(--card-foreground);
+    --color-card: var(--card);
+    --color-foreground: var(--foreground);
+    --color-background: var(--background);
+    --radius-sm: calc(var(--radius) * 0.6);
+    --radius-md: calc(var(--radius) * 0.8);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) * 1.4);
+    --radius-2xl: calc(var(--radius) * 1.8);
+    --radius-3xl: calc(var(--radius) * 2.2);
+    --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Poppins', 'Noto Sans TC', 'PingFang TC', sans-serif;
+  }
+  html {
+    @apply font-sans;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Sharp Grotesk', 'Poppins', sans-serif;
+    font-weight: 600;
+  }
+}

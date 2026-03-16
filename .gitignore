@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Environment variables (contains API keys & passwords)
+.env
+
+# Database & session files (runtime data, not code)
+backend/wsb.db
+backend/wsb.db-shm
+backend/wsb.db-wal
+backend/sa-session.json
+
+# Frontend build output (Railway builds this fresh on deploy)
+frontend/dist/
+
+# Claude Code settings (personal, not project config)
+.claude/
+
+# Session note images (large binary files, not needed)
+session-notes/*.png
+session-notes/*.jpg
+
+# macOS
+.DS_Store
+
+# Logs
+*.log

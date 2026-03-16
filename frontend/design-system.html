@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WSB Chinese Reader — Design System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    /* ── Sharp Grotesk (local fonts) ── */
+    @font-face {
+      font-family: 'Sharp Grotesk';
+      src: url('/fonts/SharpGroteskSmBold20.woff') format('woff');
+      font-weight: 600; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Sharp Grotesk';
+      src: url('/fonts/SharpGroteskSmBoldItalic20.woff') format('woff');
+      font-weight: 600; font-style: italic; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Sharp Grotesk';
+      src: url('/fonts/SharpGroteskBold20.woff') format('woff');
+      font-weight: 700; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Sharp Grotesk';
+      src: url('/fonts/SharpGroteskMedium20.woff') format('woff');
+      font-weight: 500; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Sharp Grotesk';
+      src: url('/fonts/SharpGroteskBook20.woff') format('woff');
+      font-weight: 400; font-style: normal; font-display: swap;
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+       WSB Brand Tokens — mirrors globals.css exactly.
+       Edit globals.css to retheme. This file reads from same vars.
+    ───────────────────────────────────────────────────────────── */
+    :root {
+      --wsb-navy:           #0D2E5F;
+      --wsb-gold:           #f0c020;
+      --wsb-blue:           #0751b9;
+      --wsb-blue-bright:    #0b64df;
+      --wsb-blue-wash:      #E0E7ED;
+      --wsb-bg-page:        #f9f9f9;
+      --wsb-bg-card:        #fbfeff;
+      --wsb-text-base:      #090a0c;
+      --wsb-text-body:      rgba(9,10,12,0.9);
+      --wsb-text-secondary: rgba(9,10,12,0.7);
+      --wsb-text-muted:     rgba(9,10,12,0.55);
+      --wsb-bg-muted:       rgba(13,46,95,0.05);
+      --wsb-border-brand:   rgba(13,46,95,0.2);
+      --wsb-border-subtle:  rgba(0,0,0,0.08);
+      --wsb-kp-shadow:      4px 4px 0px rgba(13,46,95,0.35);
+
+      /* shadcn tokens → WSB values */
+      --background:          var(--wsb-bg-page);
+      --foreground:          var(--wsb-text-base);
+      --card:                var(--wsb-bg-card);
+      --card-foreground:     var(--wsb-text-base);
+      --primary:             var(--wsb-blue);
+      --primary-foreground:  #ffffff;
+      --secondary:           var(--wsb-blue-wash);
+      --secondary-foreground: var(--wsb-navy);
+      --muted:               #e8e8e8;
+      --muted-foreground:    var(--wsb-text-muted);
+      --accent:              var(--wsb-blue);
+      --accent-foreground:   #ffffff;
+      --ring:                var(--wsb-blue);
+      --border:              rgba(12,10,9,0.12);
+      --destructive:         oklch(0.577 0.245 27.325);
+      --radius:              0.625rem;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--wsb-bg-page);
+      font-family: 'Poppins', 'Noto Sans TC', 'PingFang TC', sans-serif;
+      color: var(--wsb-text-base);
+      padding: 40px;
+    }
+
+    /* ── Layout ── */
+    .page { max-width: 1200px; margin: 0 auto; }
+    .section { margin-bottom: 56px; }
+    .section-title {
+      font-size: 11px; font-weight: 700; letter-spacing: 3px;
+      text-transform: uppercase; color: #888;
+      margin-bottom: 20px; padding-bottom: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+    .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; }
+
+    /* ── Design System Header ── */
+    .ds-header {
+      margin-bottom: 56px; padding: 32px;
+      background: var(--wsb-navy); border-radius: 16px;
+    }
+    .ds-header h1 {
+      font-family: 'Sharp Grotesk', sans-serif;
+      font-weight: 600; font-style: italic;
+      color: var(--wsb-gold); font-size: 32px; margin-bottom: 4px;
+    }
+    .ds-header p { color: rgba(255,255,255,0.65); font-size: 14px; }
+    .ds-header .tags { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+    .ds-tag {
+      background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.85);
+      font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 500;
+    }
+
+    /* ── Color Swatches ── */
+    .swatch-group { display: flex; flex-direction: column; width: 140px; }
+    .swatch { height: 56px; width: 100%; border-radius: 10px 10px 0 0; }
+    .swatch-info {
+      background: white; padding: 8px 10px; font-size: 11px;
+      border: 1px solid #eee; border-top: none; border-radius: 0 0 8px 8px;
+    }
+    .swatch-name { font-weight: 700; color: #222; margin-bottom: 1px; }
+    .swatch-var { color: #888; font-size: 10px; font-family: monospace; }
+    .swatch-hex { color: var(--wsb-navy); font-size: 10px; font-family: monospace; font-weight: 600; }
+    .color-grid { display: grid; grid-template-columns: repeat(auto-fill, 140px); gap: 16px; }
+
+    /* ── Typography ── */
+    .type-sample {
+      background: white; border: 1px solid #eee;
+      border-radius: 12px; padding: 20px 24px; margin-bottom: 12px;
+    }
+    .type-meta { font-size: 10px; color: #aaa; font-family: monospace; margin-bottom: 6px; }
+
+    /* ── Border Radius ── */
+    .radius-sample {
+      display: flex; align-items: center; gap: 16px;
+      background: white; border: 1px solid #eee;
+      border-radius: 12px; padding: 16px 20px; margin-bottom: 10px;
+    }
+    .radius-box { background: var(--wsb-navy); width: 40px; height: 40px; flex-shrink: 0; }
+    .radius-label { font-size: 12px; }
+    .radius-label strong { display: block; font-weight: 700; margin-bottom: 2px; }
+    .radius-label span { color: #888; font-size: 10px; font-family: monospace; }
+
+    /* ── App Header — Hero Expanded ── */
+    .hero-header {
+      background: var(--wsb-navy);
+      height: 220px; border-radius: 12px; margin-bottom: 8px;
+      position: relative; overflow: hidden;
+    }
+    .hero-inner {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 0 24px 28px;
+    }
+    .hero-source-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .hero-source-label {
+      color: var(--wsb-gold); font-size: 11px; font-weight: 600;
+      letter-spacing: 1.2px; text-transform: uppercase; opacity: 0.8; font-style: italic;
+    }
+    .hero-rule { flex: 1; height: 1px; background: rgba(240,192,32,0.25); }
+    .hero-title {
+      font-family: 'Sharp Grotesk', sans-serif;
+      font-weight: 600; font-style: italic;
+      font-size: 64px; line-height: 1.05;
+      color: var(--wsb-gold); letter-spacing: -1px;
+    }
+
+    /* ── App Header — Compact ── */
+    .compact-header {
+      background: var(--wsb-navy);
+      height: 67px; display: flex; align-items: center;
+      padding: 0 24px; justify-content: space-between;
+      border-radius: 12px; margin-bottom: 8px;
+    }
+    .compact-brand { display: flex; flex-direction: column; line-height: 1.2; }
+    .compact-source {
+      color: var(--wsb-gold); font-size: 10px; font-weight: 600;
+      letter-spacing: 1px; text-transform: uppercase; font-style: italic; opacity: 0.8;
+    }
+    .compact-title {
+      font-family: 'Sharp Grotesk', sans-serif;
+      font-weight: 600; font-style: italic;
+      font-size: 18px; color: var(--wsb-gold); letter-spacing: -0.3px;
+    }
+    .compact-right { display: flex; align-items: center; gap: 12px; }
+    .compact-date { font-size: 11px; color: rgba(255,255,255,0.6); }
+
+    /* ── Language Toggle — Dark (ToggleGroup) ── */
+    .lang-toggle-dark {
+      display: flex; background: rgba(255,255,255,0.15);
+      border-radius: 8px; padding: 4px; height: 32px; align-items: center; gap: 0;
+    }
+    .lang-btn-dark {
+      padding: 0 12px; font-size: 12px; font-weight: 600;
+      border-radius: 6px; border: none; cursor: pointer;
+      font-family: inherit; background: transparent; color: white;
+      height: 24px; display: flex; align-items: center;
+    }
+    .lang-btn-dark.active { background: white; color: var(--wsb-navy); }
+
+    /* ── Fetch Button (shadcn Button, black) ── */
+    .fetch-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #000; color: #ffffff; font-size: 12px; font-weight: 500;
+      height: 32px; padding: 0 12px; border-radius: 8px;
+      border: none; cursor: pointer; font-family: inherit;
+    }
+
+    /* ── Buttons (shadcn) ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; font-size: 13px; font-weight: 600;
+      border-radius: var(--radius); border: none; cursor: pointer;
+      font-family: inherit; white-space: nowrap;
+    }
+    .btn-primary { background: var(--wsb-blue); color: #ffffff; }
+    .btn-black { background: #000; color: #fff; }
+    .btn-secondary { background: var(--secondary); color: var(--secondary-foreground); }
+    .btn-outline { background: transparent; color: var(--wsb-blue); border: 1px solid var(--wsb-blue); }
+    .btn-ghost { background: transparent; color: var(--foreground); }
+    .btn-destructive { background: oklch(0.577 0.245 27.325 / 0.15); color: oklch(0.577 0.245 27.325); }
+    .btn-sm { padding: 5px 12px; font-size: 12px; }
+    .btn-lg { padding: 11px 20px; font-size: 15px; }
+    .btn-disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* ── Badges (shadcn) ── */
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: 2px 8px; font-size: 11px; font-weight: 600;
+      border-radius: 20px; border: 1px solid transparent;
+    }
+    .badge-primary { background: var(--wsb-blue); color: #ffffff; }
+    .badge-secondary { background: var(--wsb-blue-wash); color: var(--wsb-navy); }
+    .badge-outline { background: transparent; color: var(--wsb-blue); border-color: var(--wsb-blue); }
+    .badge-destructive { background: oklch(0.577 0.245 27.325 / 0.12); color: oklch(0.577 0.245 27.325); }
+    .badge-ticker { background: var(--wsb-blue-wash); color: var(--wsb-navy); font-family: 'SF Mono', monospace; font-size: 12px; font-weight: 600; letter-spacing: 0.275px; }
+
+    /* ── Alert (shadcn) ── */
+    .alert {
+      display: grid; grid-template-columns: auto 1fr; gap: 0 10px;
+      border-radius: 8px; border: 1px solid; padding: 12px 16px;
+      font-size: 14px; align-items: start;
+    }
+    .alert-warning { background: rgba(234,179,8,0.1); border-color: rgba(234,179,8,0.3); color: #a16207; }
+    .alert-icon { margin-top: 1px; }
+    .alert-description { color: inherit; font-size: 14px; }
+
+    /* ── Toast (Sonner) ── */
+    .toast-demo {
+      background: white; border: 1px solid rgba(0,0,0,0.12);
+      border-radius: 8px; padding: 12px 16px;
+      font-size: 14px; display: inline-flex; align-items: center; gap: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1); max-width: 360px;
+    }
+    .toast-info .toast-icon { color: var(--wsb-blue); }
+    .toast-success .toast-icon { color: #16a34a; }
+    .toast-error .toast-icon { color: oklch(0.577 0.245 27.325); }
+
+    /* ── Article Card ── */
+    .article-card {
+      display: flex;
+      border-bottom: 1px solid var(--wsb-border-subtle);
+      max-width: 736px;
+    }
+    .article-card-thumb {
+      width: 198px; height: 112px; flex-shrink: 0;
+      object-fit: cover; border-radius: 8px;
+      background: #e8e8e8; margin: 16px 0 16px 16px;
+    }
+    .article-card-content { display: flex; flex-direction: column; gap: 10px; padding: 16px; flex: 1; min-width: 0; }
+    .article-card-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .article-card-date { font-size: 12px; color: var(--wsb-text-secondary); }
+    .article-card-subtitle { font-size: 12px; color: var(--wsb-text-secondary); }
+    .article-card-title { font-size: 22px; font-weight: 600; color: var(--wsb-navy); line-height: 1.375; transition: color 0.2s; }
+    .article-card:hover .article-card-title { color: var(--wsb-blue); }
+    .article-card-tickers { display: flex; flex-wrap: wrap; gap: 6px; }
+    .article-card-bullets { display: flex; flex-direction: column; gap: 4px; }
+    .article-card-bullet {
+      font-size: 14px; color: var(--wsb-text-body);
+      padding-left: 12px; position: relative; line-height: 19.5px;
+      overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+    }
+    .article-card-bullet::before { content: '•'; color: var(--wsb-navy); position: absolute; left: 0; }
+    .article-card-title-clamp {
+      overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+    }
+    /* ── Article Card — Mobile stacked layout ── */
+    .article-card-mobile {
+      border-radius: 14px; overflow: hidden; cursor: pointer;
+      border-bottom: 1px solid var(--wsb-border-subtle);
+      display: flex; flex-direction: column; max-width: 375px;
+    }
+    .article-card-mobile-thumb {
+      width: 100%; aspect-ratio: 16/9; object-fit: cover;
+      background: #dde1e8; display: flex; align-items: center; justify-content: center;
+    }
+    .article-card-mobile-content { display: flex; flex-direction: column; gap: 8px; padding: 12px; }
+
+    /* ── Key Points Box ── */
+    .key-points {
+      background: var(--wsb-bg-muted);
+      border: 1px solid var(--wsb-border-brand);
+      box-shadow: var(--wsb-kp-shadow);
+      border-radius: 10px; padding: 15px 17px 14px;
+      display: flex; flex-direction: column; gap: 10px;
+      margin-bottom: 32px;
+    }
+    .kp-title {
+      font-size: 16px; font-weight: 600; letter-spacing: 1.1px;
+      color: var(--wsb-navy);
+    }
+    .kp-list { display: flex; flex-direction: column; gap: 8px; }
+    .kp-item {
+      font-size: 16px; padding-left: 16px; position: relative;
+      color: var(--wsb-text-body); line-height: 1.8;
+    }
+    .kp-item::before { content: '•'; color: var(--wsb-navy); position: absolute; left: 0; }
+
+    /* ── Token Table ── */
+    .token-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .token-table th {
+      text-align: left; padding: 8px 12px; font-size: 10px; font-weight: 700;
+      letter-spacing: 1px; text-transform: uppercase; color: #888;
+      border-bottom: 2px solid #eee;
+    }
+    .token-table td { padding: 8px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+    .token-table tr:last-child td { border-bottom: none; }
+    .token-name { font-family: monospace; color: var(--wsb-navy); font-weight: 600; }
+    .token-val { font-family: monospace; color: #666; font-size: 11px; }
+    .token-swatch { width: 28px; height: 28px; border-radius: 6px; display: inline-block; border: 1px solid rgba(0,0,0,0.08); }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="ds-header">
+    <h1>華爾街早報 · Wall Street Morning Post</h1>
+    <p>Design System · shadcn/ui + Tailwind CSS v4 + Tabler Icons · Updated 2026-03-13</p>
+    <div class="tags">
+      <span class="ds-tag">React 19</span>
+      <span class="ds-tag">Vite 7</span>
+      <span class="ds-tag">shadcn/ui</span>
+      <span class="ds-tag">Tailwind CSS v4</span>
+      <span class="ds-tag">Tabler Icons</span>
+      <span class="ds-tag">Sharp Grotesk</span>
+      <span class="ds-tag">Poppins</span>
+      <span class="ds-tag">Noto Sans TC</span>
+      <span class="ds-tag">tokens.js → globals.css</span>
+    </div>
+  </div>
+
+  <!-- TOKEN ARCHITECTURE -->
+  <div class="section">
+    <div class="section-title">Token Architecture</div>
+    <div style="background:white; border:1px solid #eee; border-radius:12px; padding:20px 24px; margin-bottom:16px; font-size:13px; line-height:1.8; color:#444;">
+      <strong style="color:#111;">Single source of truth:</strong> All raw values live in <code style="background:#f4f4f4; padding:1px 6px; border-radius:4px; font-size:12px;">globals.css</code> under <code style="background:#f4f4f4; padding:1px 6px; border-radius:4px; font-size:12px;">--wsb-*</code> variables.
+      shadcn tokens (<code style="background:#f4f4f4; padding:1px 6px; border-radius:4px; font-size:12px;">--primary</code>, <code style="background:#f4f4f4; padding:1px 6px; border-radius:4px; font-size:12px;">--secondary</code>, <code style="background:#f4f4f4; padding:1px 6px; border-radius:4px; font-size:12px;">--ring</code>, etc.) point to <code style="background:#f4f4f4; padding:1px 6px; border-radius:4px; font-size:12px;">var(--wsb-*)</code>.
+      <code style="background:#f4f4f4; padding:1px 6px; border-radius:4px; font-size:12px;">tokens.js</code> exports <code style="background:#f4f4f4; padding:1px 6px; border-radius:4px; font-size:12px;">var(--wsb-*)</code> references for use in React inline styles.
+      <br><strong style="color:#111;">To retheme:</strong> edit only the <code style="background:#f4f4f4; padding:1px 6px; border-radius:4px; font-size:12px;">--wsb-*</code> values in globals.css — both custom components and shadcn update automatically.
+    </div>
+    <div style="background:white; border:1px solid #eee; border-radius:12px; overflow:hidden;">
+      <table class="token-table">
+        <thead>
+          <tr>
+            <th>Swatch</th>
+            <th>CSS Variable (globals.css)</th>
+            <th>tokens.js export</th>
+            <th>Value</th>
+            <th>Usage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="token-swatch" style="background:#0D2E5F;"></span></td>
+            <td><span class="token-name">--wsb-navy</span></td>
+            <td><span class="token-val">NAVY</span></td>
+            <td><span class="token-val">#0D2E5F</span></td>
+            <td style="color:#666; font-size:11px;">Headings, bullets, icons, header bg</td>
+          </tr>
+          <tr>
+            <td><span class="token-swatch" style="background:#f0c020;"></span></td>
+            <td><span class="token-name">--wsb-gold</span></td>
+            <td><span class="token-val">GOLD</span></td>
+            <td><span class="token-val">#f0c020</span></td>
+            <td style="color:#666; font-size:11px;">Brand title on dark header</td>
+          </tr>
+          <tr>
+            <td><span class="token-swatch" style="background:#0751b9;"></span></td>
+            <td><span class="token-name">--wsb-blue</span> → <span class="token-name">--primary</span></td>
+            <td><span class="token-val">BLUE</span></td>
+            <td><span class="token-val">#0751b9</span></td>
+            <td style="color:#666; font-size:11px;">Interactive blue, shadcn primary, card title hover</td>
+          </tr>
+          <tr>
+            <td><span class="token-swatch" style="background:#0b64df;"></span></td>
+            <td><span class="token-name">--wsb-blue-bright</span></td>
+            <td><span class="token-val">BLUE_BRIGHT</span></td>
+            <td><span class="token-val">#0b64df</span></td>
+            <td style="color:#666; font-size:11px;">Hover / bright blue variant</td>
+          </tr>
+          <tr>
+            <td><span class="token-swatch" style="background:#E0E7ED; border:1px solid #ddd;"></span></td>
+            <td><span class="token-name">--wsb-blue-wash</span> → <span class="token-name">--secondary</span></td>
+            <td><span class="token-val">—</span></td>
+            <td><span class="token-val">#E0E7ED</span></td>
+            <td style="color:#666; font-size:11px;">shadcn Badge/Button secondary bg, ticker chips</td>
+          </tr>
+          <tr>
+            <td><span class="token-swatch" style="background:#f9f9f9; border:1px solid #ddd;"></span></td>
+            <td><span class="token-name">--wsb-bg-page</span> → <span class="token-name">--background</span></td>
+            <td><span class="token-val">BG_PAGE</span></td>
+            <td><span class="token-val">#f9f9f9</span></td>
+            <td style="color:#666; font-size:11px;">Page background</td>
+          </tr>
+          <tr>
+            <td><span class="token-swatch" style="background:#fbfeff; border:1px solid #ddd;"></span></td>
+            <td><span class="token-name">--wsb-bg-card</span> → <span class="token-name">--card</span></td>
+            <td><span class="token-val">BG_CARD</span></td>
+            <td><span class="token-val">#fbfeff</span></td>
+            <td style="color:#666; font-size:11px;">Card / popover / toast background</td>
+          </tr>
+          <tr>
+            <td><span class="token-swatch" style="background:rgba(9,10,12,0.9);"></span></td>
+            <td><span class="token-name">--wsb-text-body</span></td>
+            <td><span class="token-val">TEXT_BODY</span></td>
+            <td><span class="token-val">rgba(9,10,12,0.9)</span></td>
+            <td style="color:#666; font-size:11px;">Paragraphs, bullet points (90% opacity)</td>
+          </tr>
+          <tr>
+            <td><span class="token-swatch" style="background:rgba(9,10,12,0.7);"></span></td>
+            <td><span class="token-name">--wsb-text-secondary</span></td>
+            <td><span class="token-val">TEXT_SECONDARY</span></td>
+            <td><span class="token-val">rgba(9,10,12,0.7)</span></td>
+            <td style="color:#666; font-size:11px;">Dates, subtitles, captions</td>
+          </tr>
+          <tr>
+            <td><span class="token-swatch" style="background:rgba(9,10,12,0.55);"></span></td>
+            <td><span class="token-name">--wsb-text-muted</span> → <span class="token-name">--muted-foreground</span></td>
+            <td><span class="token-val">TEXT_MUTED</span></td>
+            <td><span class="token-val">rgba(9,10,12,0.55)</span></td>
+            <td style="color:#666; font-size:11px;">Empty states, loading, helper text</td>
+          </tr>
+          <tr>
+            <td><span class="token-swatch" style="background:rgba(13,46,95,0.05);"></span></td>
+            <td><span class="token-name">--wsb-bg-muted</span></td>
+            <td><span class="token-val">BG_MUTED / KP_BG</span></td>
+            <td><span class="token-val">rgba(13,46,95,0.05)</span></td>
+            <td style="color:#666; font-size:11px;">Key points box background</td>
+          </tr>
+          <tr>
+            <td><span class="token-swatch" style="background:rgba(13,46,95,0.2);"></span></td>
+            <td><span class="token-name">--wsb-border-brand</span></td>
+            <td><span class="token-val">BORDER_BRAND / KP_BORDER</span></td>
+            <td><span class="token-val">rgba(13,46,95,0.2)</span></td>
+            <td style="color:#666; font-size:11px;">Key points box border</td>
+          </tr>
+          <tr>
+            <td><span class="token-swatch" style="background:rgba(0,0,0,0.08); border:1px solid #ddd;"></span></td>
+            <td><span class="token-name">--wsb-border-subtle</span></td>
+            <td><span class="token-val">BORDER_SUBTLE</span></td>
+            <td><span class="token-val">rgba(0,0,0,0.08)</span></td>
+            <td style="color:#666; font-size:11px;">Article card dividers, section borders</td>
+          </tr>
+          <tr>
+            <td><span class="token-swatch" style="background:rgba(13,46,95,0.35);"></span></td>
+            <td><span class="token-name">--wsb-kp-shadow</span></td>
+            <td><span class="token-val">KP_SHADOW</span></td>
+            <td><span class="token-val">4px 4px 0px rgba(13,46,95,0.35)</span></td>
+            <td style="color:#666; font-size:11px;">Key points retro offset shadow</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- RESPONSIVE BREAKPOINTS -->
+  <div class="section">
+    <div class="section-title">Responsive Breakpoints</div>
+    <div style="background:white; border:1px solid #eee; border-radius:12px; overflow:hidden;">
+      <table class="token-table">
+        <thead>
+          <tr>
+            <th>Element</th>
+            <th>Mobile (&lt; 640px)</th>
+            <th>Desktop (sm+, ≥ 640px)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="token-name">Hero height</td>
+            <td class="token-val">160px</td>
+            <td class="token-val">220px</td>
+          </tr>
+          <tr>
+            <td class="token-name">Hero title font</td>
+            <td class="token-val">40px</td>
+            <td class="token-val">64px</td>
+          </tr>
+          <tr>
+            <td class="token-name">Hero padding</td>
+            <td class="token-val">0 16px 20px</td>
+            <td class="token-val">0 24px 28px</td>
+          </tr>
+          <tr>
+            <td class="token-name">Article card layout</td>
+            <td class="token-val">flex-col (stacked)</td>
+            <td class="token-val">flex-row (horizontal)</td>
+          </tr>
+          <tr>
+            <td class="token-name">Card thumbnail</td>
+            <td class="token-val">w-full · aspect-ratio 16:9 · flush</td>
+            <td class="token-val">198×112px · rounded-[8px] · p-4</td>
+          </tr>
+          <tr>
+            <td class="token-name">Card title</td>
+            <td class="token-val">18px · line-clamp-2</td>
+            <td class="token-val">22px · line-clamp-2</td>
+          </tr>
+          <tr>
+            <td class="token-name">Card bullets</td>
+            <td class="token-val">visible · line-clamp-2 each · max 3</td>
+            <td class="token-val">visible · line-clamp-2 each · max 3</td>
+          </tr>
+          <tr>
+            <td class="token-name">Card content padding</td>
+            <td class="token-val">p-3 (12px)</td>
+            <td class="token-val">p-4 (16px)</td>
+          </tr>
+          <tr>
+            <td class="token-name">Detail H1 title</td>
+            <td class="token-val">26px</td>
+            <td class="token-val">32px</td>
+          </tr>
+          <tr>
+            <td class="token-name">Scroll hysteresis</td>
+            <td colspan="2" class="token-val">collapse: scrollY &gt; 70 · expand: scrollY &lt; 50</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- APP HEADER — HERO (EXPANDED) -->
+  <div class="section">
+    <div class="section-title">App Header — Hero (Expanded, Listing Page Default)</div>
+    <p style="font-size:11px; color:#888; margin-bottom:10px;">
+      bg: --wsb-navy · height: 220px (desktop) / 160px (mobile) · title: Sharp Grotesk SmBold Italic 64px (desktop) / 40px (mobile) · color: --wsb-gold · rule: rgba(240,192,32,0.25)
+    </p>
+    <div class="hero-header">
+      <div class="hero-inner">
+        <div class="hero-source-row">
+          <span class="hero-source-label">Seeking Alpha</span>
+          <div class="hero-rule"></div>
+        </div>
+        <div class="hero-title">華爾街早報</div>
+      </div>
+    </div>
+
+    <div class="section-title" style="margin-top:24px;">App Header — Compact (Scrolled / Detail Page)</div>
+    <p style="font-size:11px; color:#888; margin-bottom:10px;">
+      bg: --wsb-navy · height: 67px · title: Sharp Grotesk SmBold Italic 18px · --wsb-gold · lang toggle: shadcn ToggleGroup · active pill: white bg / --wsb-navy text
+    </p>
+    <div class="compact-header">
+      <div class="compact-brand">
+        <span class="compact-source">Seeking Alpha</span>
+        <span class="compact-title">華爾街早報</span>
+      </div>
+      <div class="compact-right">
+        <span class="compact-date">更新：13/3 上午07:30</span>
+        <div class="lang-toggle-dark">
+          <button class="lang-btn-dark active">中文繁體</button>
+          <button class="lang-btn-dark">EN</button>
+        </div>
+      </div>
+    </div>
+    <div style="background:#f0f0f0; border-radius:10px; padding:14px 16px; margin-top:16px; font-size:12px; color:#555; line-height:1.7;">
+      <strong>Scroll animation:</strong> height transitions 220px → 67px over 0.45s cubic-bezier(0.4,0,0.2,1). Hero fades out + slides down; compact fades in + slides up.
+      <strong>Hysteresis:</strong> collapses when <code>scrollY &gt; 70</code>, expands when <code>scrollY &lt; 50</code> — prevents shaking at boundary. Detail page always shows compact. Scroll resets to 0 on navigation.
+    </div>
+  </div>
+
+  <!-- CONTROLS BAR -->
+  <div class="section">
+    <div class="section-title">Controls Bar (Below Header, Listing Page Only)</div>
+    <p style="font-size:11px; color:#888; margin-bottom:10px;">Fetch button: shadcn Button size=sm · bg #000 · rounded-[8px] · border-bottom: 1px solid --wsb-border-subtle</p>
+    <div style="background:var(--wsb-bg-page); padding:8px 16px; border-radius:8px; border-bottom:1px solid var(--wsb-border-subtle);">
+      <div class="row" style="align-items:center; justify-content:space-between;">
+        <button class="fetch-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 .49-3.96"></path></svg>
+          抓取並翻譯最新文章
+        </button>
+        <span style="font-size:11px; color:var(--wsb-text-muted);">自動抓取：每日 上午 7:30 EST</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARTICLE CARD -->
+  <div class="section">
+    <div class="section-title">Article Card — Desktop (Horizontal) / Mobile (Stacked)</div>
+
+    <!-- Desktop -->
+    <p style="font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#aaa; margin-bottom:4px;">Desktop (sm+) — Horizontal</p>
+    <p style="font-size:11px; color:#888; margin-bottom:10px;">Thumbnail 198×112 rounded-[8px] · Title 22px line-clamp-2 · Date/subtitle 12px · Bullets 14px / 19.5px leading / line-clamp-2 · max 3 bullets</p>
+    <div style="max-width:736px; background:var(--wsb-bg-page); border-radius:12px; overflow:hidden; margin-bottom:24px;">
+      <div class="article-card">
+        <div style="width:198px; height:112px; flex-shrink:0; border-radius:8px; background:#dde1e8; margin:16px 0 16px 16px; display:flex; align-items:center; justify-content:center;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </div>
+        <div class="article-card-content">
+          <div class="article-card-meta">
+            <span class="article-card-date">2026年3月13日 上午07:30</span>
+            <span class="article-card-subtitle">Wall Street Breakfast Podcast: Adobe Beats, CEO Exits</span>
+          </div>
+          <div class="article-card-title article-card-title-clamp">華爾街早餐播客：Adobe 業績超預期，執行長辭職</div>
+          <div class="article-card-tickers">
+            <span class="badge badge-ticker">ADBE</span>
+          </div>
+          <div class="article-card-bullets">
+            <div class="article-card-bullet">Adobe (ADBE) 第一季業績創歷史新高，調整後每股收益 $6.06，營收增長 12%</div>
+            <div class="article-card-bullet">執行長 Shantanu Narayen 將在任職 18 年後辭職，直至繼任者就任</div>
+            <div class="article-card-bullet">Q2 指引：營收 $6.43B–$6.48B，高於市場預期</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile -->
+    <p style="font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#aaa; margin-bottom:4px;">Mobile (&lt; sm, 640px) — Stacked</p>
+    <p style="font-size:11px; color:#888; margin-bottom:10px;">Thumbnail full-width · aspect-ratio 16:9 · flush with card (overflow-hidden) · Title 18px line-clamp-2 · Bullets visible with line-clamp-2 per item</p>
+    <div class="article-card-mobile">
+      <div class="article-card-mobile-thumb">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      </div>
+      <div class="article-card-mobile-content">
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <span style="font-size:12px; color:var(--wsb-text-secondary);">2026年3月13日 上午07:30</span>
+          <span style="font-size:12px; color:var(--wsb-text-secondary); overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">Adobe Beats, CEO Exits</span>
+        </div>
+        <div style="font-size:18px; font-weight:600; color:var(--wsb-navy); line-height:1.375; overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2;">華爾街早餐播客：Adobe 業績超預期，執行長辭職</div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <span class="badge badge-ticker">ADBE</span>
+        </div>
+        <div class="article-card-bullets">
+          <div class="article-card-bullet">Adobe (ADBE) 第一季業績創歷史新高，調整後每股收益 $6.06</div>
+          <div class="article-card-bullet">執行長 Shantanu Narayen 將在任職 18 年後辭職</div>
+          <div class="article-card-bullet">Q2 指引：營收 $6.43B–$6.48B，高於市場預期</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SHADCN COMPONENTS -->
+  <div class="section">
+    <div class="section-title">shadcn Components in Use</div>
+
+    <!-- Badge -->
+    <div style="margin-bottom:24px;">
+      <p style="font-size:11px; font-weight:700; color:#555; margin-bottom:6px; text-transform:uppercase; letter-spacing:1px;">Badge</p>
+      <p style="font-size:11px; color:#888; margin-bottom:10px;">Ticker chips use Badge secondary · font-mono · 12px · font-semibold · tracking 0.275px · bg --wsb-blue-wash · text --wsb-navy</p>
+      <div class="row">
+        <span class="badge badge-primary">Primary</span>
+        <span class="badge badge-secondary">Secondary</span>
+        <span class="badge badge-outline">Outline (border --wsb-blue)</span>
+        <span class="badge badge-destructive">⚠ Destructive</span>
+        <span class="badge badge-ticker">ADBE</span>
+        <span class="badge badge-ticker">ORCL</span>
+        <span class="badge badge-ticker">NVDA</span>
+      </div>
+    </div>
+
+    <!-- Button -->
+    <div style="margin-bottom:24px;">
+      <p style="font-size:11px; font-weight:700; color:#555; margin-bottom:6px; text-transform:uppercase; letter-spacing:1px;">Button</p>
+      <p style="font-size:11px; color:#888; margin-bottom:10px;">Ghost variant used for: "Back to articles" (-ml-2), Source link (asChild wrapping &lt;a&gt;)</p>
+      <div style="background:var(--wsb-bg-page); padding:20px; border-radius:12px; border:1px solid #eee;">
+        <div class="row" style="margin-bottom:12px;">
+          <button class="btn btn-primary">Primary</button>
+          <button class="btn btn-black">Black (Fetch)</button>
+          <button class="btn btn-secondary">Secondary</button>
+          <button class="btn btn-outline">Outline</button>
+          <button class="btn btn-ghost">Ghost (Back / Source)</button>
+          <button class="btn btn-destructive">Destructive</button>
+        </div>
+        <div class="row">
+          <button class="btn btn-black btn-sm">Small</button>
+          <button class="btn btn-black">Default</button>
+          <button class="btn btn-black btn-lg">Large</button>
+          <button class="btn btn-black btn-disabled" disabled>Disabled</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alert -->
+    <div style="margin-bottom:24px;">
+      <p style="font-size:11px; font-weight:700; color:#555; margin-bottom:6px; text-transform:uppercase; letter-spacing:1px;">Alert</p>
+      <p style="font-size:11px; color:#888; margin-bottom:10px;">Used for persistent inline warnings (e.g. incomplete article fetch) · 14px · bg yellow-500/10 · border yellow-500/30</p>
+      <div class="alert alert-warning" style="max-width:600px;">
+        <svg class="alert-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div class="alert-description">原文抓取不完整（可能需要 Seeking Alpha 訂閱）。以下翻譯僅基於已獲取的內容。</div>
+      </div>
+    </div>
+
+    <!-- Toast (Sonner) -->
+    <div style="margin-bottom:8px;">
+      <p style="font-size:11px; font-weight:700; color:#555; margin-bottom:6px; text-transform:uppercase; letter-spacing:1px;">Toast (Sonner) — position: bottom-right</p>
+      <p style="font-size:11px; color:#888; margin-bottom:10px;">Used for transient feedback only: fetch started (info), articles updated (success), errors (error)</p>
+      <div class="row">
+        <div class="toast-demo toast-info">
+          <svg class="toast-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          正在搜尋並翻譯最新文章…
+        </div>
+        <div class="toast-demo toast-success">
+          <svg class="toast-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#16a34a;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          文章已更新！
+        </div>
+        <div class="toast-demo toast-error">
+          <svg class="toast-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:oklch(0.577 0.245 27.325);"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          抓取失敗，請稍後再試。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KEY POINTS BOX -->
+  <div class="section">
+    <div class="section-title">Key Points Component (Detail Page)</div>
+    <p style="font-size:11px; color:#888; margin-bottom:12px;">
+      bg: --wsb-bg-muted · border: --wsb-border-brand · shadow: --wsb-kp-shadow (retro offset 4px 4px) · section label: 16px 600 tracking 1.1px · bullets: 16px line-height 1.8 --wsb-text-body · mb-[32px]
+    </p>
+    <div style="max-width:600px;">
+      <div class="key-points">
+        <div class="kp-title">重點摘要 · Summary</div>
+        <div class="kp-list">
+          <div class="kp-item">Adobe (ADBE) 第一季業績創歷史新高，調整後每股收益 $6.06，營收增長 12% 至 $6.4B</div>
+          <div class="kp-item">執行長 Shantanu Narayen 將在任職 18 年後辭職，直至繼任者就任</div>
+          <div class="kp-item">Q2 指引：營收 $6.43B–$6.48B，高於市場預期 $6.43B</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TYPOGRAPHY -->
+  <div class="section">
+    <div class="section-title">Typography Scale</div>
+    <div class="type-sample">
+      <div class="type-meta">Hero Title · Sharp Grotesk SmBold Italic 600 · 64px · --wsb-gold on --wsb-navy</div>
+      <div style="font-family:'Sharp Grotesk',sans-serif; font-weight:600; font-style:italic; font-size:64px; color:#f0c020; background:#0D2E5F; padding:12px 16px; border-radius:8px; line-height:1.05; letter-spacing:-1px;">華爾街早報</div>
+    </div>
+    <div class="type-sample">
+      <div class="type-meta">Compact Header Title · Sharp Grotesk SmBold Italic 600 · 18px · --wsb-gold on --wsb-navy</div>
+      <div style="font-family:'Sharp Grotesk',sans-serif; font-weight:600; font-style:italic; font-size:18px; color:#f0c020; background:#0D2E5F; padding:8px 12px; border-radius:8px; display:inline-block;">華爾街早報</div>
+    </div>
+    <div class="type-sample">
+      <div class="type-meta">Article Title H1 (Detail) · Sharp Grotesk SmBold Italic 600 · 32px · --wsb-navy</div>
+      <div style="font-family:'Sharp Grotesk',sans-serif; font-weight:600; font-style:italic; font-size:32px; color:#0D2E5F; line-height:1.2;">華爾街早餐播客：Adobe 業績超預期，執行長辭職</div>
+    </div>
+    <div class="type-sample">
+      <div class="type-meta">Article Title H2 (Card) · Poppins 600 · 22px · --wsb-navy → hover --wsb-blue</div>
+      <div style="font-family:'Poppins',sans-serif; font-weight:600; font-size:22px; color:#0D2E5F; line-height:1.375;">Adobe 業績超預期，執行長辭職</div>
+    </div>
+    <div class="type-sample">
+      <div class="type-meta">Section Label · Poppins 600 · 16px · line-height 1.8 · letter-spacing 1.1px · --wsb-navy</div>
+      <div style="font-size:16px; font-weight:600; letter-spacing:1.1px; color:#0D2E5F;">重點摘要 · Summary</div>
+    </div>
+    <div class="type-sample">
+      <div class="type-meta">Body / Article Content · Poppins + Noto Sans TC · 16px · 400 · line-height 1.8 · --wsb-text-body (0.9)</div>
+      <div style="font-size:16px; line-height:1.8; color:rgba(9,10,12,0.9);">Adobe (ADBE) 在公佈 2026 財年第一季財務表現後，盤前股價下跌 9%。Adobe 也透露，其執行長 Shantanu Narayen 計劃在任職 18 年後辭職。截至 2 月 27 日的季度，Adobe 報告調整後每股收益為 $6.06，而市場共識預期為 $5.87。</div>
+    </div>
+    <div class="type-sample">
+      <div class="type-meta">Bullet Point (Key Points / Catalyst Watch) · 16px · line-height 1.8 · --wsb-text-body (0.9)</div>
+      <div style="font-size:16px; color:rgba(9,10,12,0.9); padding-left:16px; position:relative; line-height:1.8;">
+        <span style="position:absolute; left:0; color:#0D2E5F;">•</span>
+        Adobe (ADBE) 第一季業績創歷史新高，調整後每股收益 $6.06，營收增長 12% 至 $6.4B
+      </div>
+    </div>
+    <div class="type-sample">
+      <div class="type-meta">Card Bullet Point · 14px · line-height 1.8 · --wsb-text-body (0.9)</div>
+      <div style="font-size:14px; color:rgba(9,10,12,0.9); padding-left:12px; position:relative; line-height:1.8;">
+        <span style="position:absolute; left:0; color:#0D2E5F;">•</span>
+        執行長 Shantanu Narayen 將在任職 18 年後辭職，直至繼任者就任
+      </div>
+    </div>
+    <div class="type-sample">
+      <div class="type-meta">Date / Subtitle (Detail) · 14px · --wsb-text-secondary (0.7) · EN subtitle: 16px</div>
+      <div style="font-size:14px; color:rgba(9,10,12,0.7);">2026年3月13日星期四 上午07:30 (HKT)</div>
+    </div>
+    <div class="type-sample">
+      <div class="type-meta">Date / Subtitle (Card) · 12px · --wsb-text-secondary (0.7)</div>
+      <div style="font-size:12px; color:rgba(9,10,12,0.7);">2026年3月13日 上午07:30 · Wall Street Breakfast: Adobe Beats</div>
+    </div>
+    <div class="type-sample">
+      <div class="type-meta">Mono / Ticker · 12px · font-semibold · SF Mono · letter-spacing 0.275px</div>
+      <div style="font-family:'SF Mono',monospace; font-size:12px; font-weight:600; letter-spacing:0.275px;">ADBE · ORCL · MSFT · NVDA · GOOGL · AMZN · TSLA · BRK.B</div>
+    </div>
+  </div>
+
+  <!-- BORDER RADIUS -->
+  <div class="section">
+    <div class="section-title">Border Radius</div>
+    <div class="radius-sample">
+      <div class="radius-box" style="border-radius:8px;"></div>
+      <div class="radius-label"><strong>8px — Thumbnail / Controls</strong><span>Article card thumbnail, language toggle, fetch button</span></div>
+    </div>
+    <div class="radius-sample">
+      <div class="radius-box" style="border-radius:10px;"></div>
+      <div class="radius-label"><strong>10px — Key Points Box</strong><span>Summary / catalyst watch containers</span></div>
+    </div>
+    <div class="radius-sample">
+      <div class="radius-box" style="border-radius:12px;"></div>
+      <div class="radius-label"><strong>12px — Page Sections</strong><span>Header, controls bar, section containers</span></div>
+    </div>
+    <div class="radius-sample">
+      <div class="radius-box" style="border-radius:9999px;"></div>
+      <div class="radius-label"><strong>Full Pill — Badges</strong><span>shadcn Badge (tickers, labels)</span></div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
