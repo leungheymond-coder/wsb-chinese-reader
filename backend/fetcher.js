@@ -573,14 +573,24 @@ export async function discoverAndFetchNew() {
     console.log(`[fetcher] ${existing ? 'Retrying incomplete' : 'New article'}: ${article.title_en}`);
 
     try {
-      let content = await fetchFullArticle(article.sa_url);
+      let content = null;
 
-      // Fallback to Claude web search if still blocked
-      if (content.is_paywalled || content.fetch_status === 'incomplete') {
-        console.log('[fetcher] Playwright incomplete — trying web search fallback...');
+      // Try Playwright first — if browser isn't installed (e.g. Railway), skip to fallback
+      try {
+        content = await fetchFullArticle(article.sa_url);
+      } catch (playwrightErr) {
+        console.log(`[fetcher] Playwright unavailable — trying web search fallback...`);
+      }
+
+      // Fallback to web search if Playwright failed, was blocked, or returned incomplete content
+      if (!content || content.is_paywalled || content.fetch_status === 'incomplete') {
+        console.log('[fetcher] Trying web search fallback...');
         const fallback = await fetchArticleViaWebSearch(article.title_en, article.sa_url);
         if (fallback) content = fallback;
       }
+
+      // If all methods failed, create an incomplete placeholder
+      if (!content) content = { title_en: article.title_en, full_content_en: '', summary_bullets: [], tickers: [], thumbnail_url: '', catalyst_watch: '', fetch_status: 'incomplete', is_paywalled: false };
 
       const resolvedTitle = (content.is_paywalled || !content.full_content_en)
         ? article.title_en
