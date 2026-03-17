@@ -77,7 +77,7 @@ export async function sendNewArticleNotification(articles) {
   if (error) throw new Error(error.message);
   console.log(`[emailer] ✓ Email sent: ${data.id} (${articles.length} articles)`);
   articles.forEach(a => markEmailSent(a.id));
-  return info;
+  return data;
 }
 
 // ── Main: Send notifications for all unnotified articles ─────────────────────
