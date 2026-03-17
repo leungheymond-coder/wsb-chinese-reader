@@ -20,7 +20,22 @@ export default function App() {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 640)
 
   useEffect(() => {
-    loadArticles()
+    loadArticles().then(() => {
+      // On initial load, check if URL has an article ID (e.g. /#/article/15)
+      const match = window.location.hash.match(/^#\/article\/(\d+)$/)
+      if (match) openArticleById(parseInt(match[1]))
+    })
+  }, [])
+
+  // Handle browser back/forward navigation
+  useEffect(() => {
+    const onPopState = () => {
+      const match = window.location.hash.match(/^#\/article\/(\d+)$/)
+      if (match) openArticleById(parseInt(match[1]))
+      else setCurrentArticle(null)
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
   }, [])
 
   useEffect(() => {
@@ -57,6 +72,16 @@ export default function App() {
     } finally {
       setLoading(false)
     }
+  }
+
+  async function openArticleById(id) {
+    try {
+      const res = await fetch(`${API}/articles/${id}`)
+      const full = await res.json()
+      full.key_points_en = Array.isArray(full.key_points_en) ? full.key_points_en : JSON.parse(full.key_points_en || '[]')
+      full.key_points_zh = Array.isArray(full.key_points_zh) ? full.key_points_zh : JSON.parse(full.key_points_zh || '[]')
+      setCurrentArticle(full)
+    } catch { /* ignore */ }
   }
 
   async function triggerFetch() {
@@ -241,7 +266,7 @@ export default function App() {
           <ArticleDetail
             article={currentArticle}
             lang={lang}
-            onBack={() => setCurrentArticle(null)}
+            onBack={() => { window.history.pushState(null, '', '/'); setCurrentArticle(null) }}
           />
         ) : (
           <ArticleList
@@ -249,12 +274,9 @@ export default function App() {
             loading={loading}
             lang={lang}
             onSelect={async (article) => {
-          const res = await fetch(`${API}/articles/${article.id}`)
-          const full = await res.json()
-          full.key_points_en = Array.isArray(full.key_points_en) ? full.key_points_en : JSON.parse(full.key_points_en || '[]')
-          full.key_points_zh = Array.isArray(full.key_points_zh) ? full.key_points_zh : JSON.parse(full.key_points_zh || '[]')
-          setCurrentArticle(full)
-        }}
+              window.history.pushState(null, '', `#/article/${article.id}`)
+              await openArticleById(article.id)
+            }}
           />
         )}
       </main>

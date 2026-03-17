@@ -19,7 +19,7 @@ function buildEmailHTML(articles) {
     const pubDate = a.published_at
       ? new Date(a.published_at).toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' })
       : '';
-    const appUrl = `${process.env.APP_URL || 'http://localhost:3000'}`;
+    const appUrl = `${process.env.APP_URL || 'http://localhost:3000'}/#/article/${a.id}`;
 
     return `
       <div style="border:1px solid rgba(0,0,0,0.1);border-radius:12px;padding:20px 24px;margin-bottom:20px;background:#ffffff;">
