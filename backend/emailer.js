@@ -1,17 +1,9 @@
 // emailer.js — Send email notifications for newly translated articles
 import { config as dotenvConfig } from 'dotenv'; dotenvConfig({ override: true });
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { getUnnotifiedArticles, markEmailSent } from './db.js';
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  }
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // ── Format email HTML ─────────────────────────────────────────────────────────
 
@@ -75,14 +67,15 @@ export async function sendNewArticleNotification(articles) {
     ? `【華爾街早報】${articles[0].title_zh || articles[0].title_en}`
     : `【華爾街早報】${articles.length} 篇新文章已翻譯完成`;
 
-  const info = await transporter.sendMail({
-    from: `"華爾街早報" <${process.env.SMTP_USER}>`,
+  const { data, error } = await resend.emails.send({
+    from: 'WSB Reader <onboarding@resend.dev>',
     to: process.env.NOTIFY_EMAIL,
     subject,
     html: buildEmailHTML(articles)
   });
 
-  console.log(`[emailer] ✓ Email sent: ${info.messageId} (${articles.length} articles)`);
+  if (error) throw new Error(error.message);
+  console.log(`[emailer] ✓ Email sent: ${data.id} (${articles.length} articles)`);
   articles.forEach(a => markEmailSent(a.id));
   return info;
 }
