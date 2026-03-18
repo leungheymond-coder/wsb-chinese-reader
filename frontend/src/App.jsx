@@ -243,8 +243,8 @@ export default function App() {
         </div>
       </header>
 
-      {/* Controls bar — listing page only */}
-      {!currentArticle && (
+      {/* Controls bar — local dev only (hidden in production) */}
+      {!currentArticle && import.meta.env.VITE_SHOW_FETCH_BUTTON === 'true' && (
         <div style={{ background: '#f9f9f9', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
           <div className="max-w-3xl mx-auto px-4 py-[8px] flex items-center justify-between gap-2 flex-wrap">
             <Button
