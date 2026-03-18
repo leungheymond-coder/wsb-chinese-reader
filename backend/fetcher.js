@@ -422,7 +422,7 @@ async function fetchArticleViaTavilyExtract(url) {
       summary_bullets: parsed.summaryBullets || [],
       catalyst_watch: parsed.catalystWatch || '',
       tickers: [],
-      thumbnail_url: result.image || '',
+      thumbnail_url: result.images?.[0] || result.image || '',
       fetch_status: content.length > 200 ? 'complete' : 'incomplete',
       is_paywalled: false
     };
@@ -580,6 +580,58 @@ Return ALL the article content verbatim — every bullet point, company mention,
   }
 }
 
+// ── Thumbnail Fetchers ────────────────────────────────────────────────────────
+
+// Layer 1: fetch og:image meta tag directly from SA (lightweight HTTP, no browser)
+async function fetchOgImage(url) {
+  try {
+    const res = await fetch(url.split('?')[0], {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
+        'Accept': 'text/html,application/xhtml+xml'
+      },
+      signal: AbortSignal.timeout(8000)
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+    const match = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
+                || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+    const imgUrl = match?.[1];
+    if (imgUrl) console.log(`[fetcher] og:image found: ${imgUrl.slice(0, 60)}...`);
+    return imgUrl || null;
+  } catch {
+    return null;
+  }
+}
+
+// Layer 2: search Pexels for a relevant stock photo based on article title
+async function fetchPexelsImage(title) {
+  if (!process.env.PEXELS_API_KEY) return null;
+  const query = title
+    .replace(/^Wall Street (Breakfast Podcast:|Breakfast:|Lunch:|Brunch:|Week Ahead:|Roundup:)\s*/i, '')
+    .replace(/^What Moved Markets This Week\s*/i, '')
+    .replace(/[^\w\s]/g, '')
+    .trim() || 'Wall Street finance';
+  try {
+    const res = await fetch(
+      `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=1&orientation=landscape`,
+      { headers: { Authorization: process.env.PEXELS_API_KEY } }
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    const imgUrl = data.photos?.[0]?.src?.medium || null;
+    if (imgUrl) console.log(`[fetcher] Pexels image found for: "${query}"`);
+    return imgUrl;
+  } catch {
+    return null;
+  }
+}
+
+// Resolve thumbnail: og:image → Pexels → empty
+async function resolveThumbnail(url, title) {
+  return (await fetchOgImage(url)) || (await fetchPexelsImage(title)) || '';
+}
+
 // ── Web Search Fallback: Tavily → Gemini ─────────────────────────────────────
 // Note: Claude refused to reproduce copyrighted article content so it's excluded
 
@@ -638,6 +690,11 @@ export async function discoverAndFetchNew() {
 
       // If all methods failed, create an incomplete placeholder
       if (!content) content = { title_en: article.title_en, full_content_en: '', summary_bullets: [], tickers: [], thumbnail_url: '', catalyst_watch: '', fetch_status: 'incomplete', is_paywalled: false };
+
+      // Resolve thumbnail if none found during content fetch
+      if (!content.thumbnail_url) {
+        content.thumbnail_url = await resolveThumbnail(article.sa_url, article.title_en);
+      }
 
       const resolvedTitle = (content.is_paywalled || !content.full_content_en)
         ? article.title_en
