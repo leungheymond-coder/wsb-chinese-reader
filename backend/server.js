@@ -5,7 +5,7 @@ import cors from 'cors';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { existsSync } from 'fs';
-import { getAllArticles, getArticleById } from './db.js';
+import db, { getAllArticles, getArticleById } from './db.js';
 import { startScheduler, runPipeline, isPipelineRunning } from './scheduler.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -49,6 +49,45 @@ app.post('/api/fetch', async (req, res) => {
   }
   res.json({ message: 'Fetch pipeline started' });
   runPipeline('manual');
+});
+
+// POST /api/migrate — one-time import of articles (protected, remove after use)
+app.post('/api/migrate', (req, res) => {
+  const secret = process.env.FETCH_SECRET;
+  if (secret && req.headers['x-fetch-secret'] !== secret) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  const articles = req.body;
+  if (!Array.isArray(articles)) return res.status(400).json({ error: 'Expected array of articles' });
+
+  const insert = db.prepare(`
+    INSERT OR IGNORE INTO articles (
+      sa_url, sa_article_id, title_en, title_zh,
+      summary_en, summary_zh, key_points_en, key_points_zh,
+      full_content_en, full_content_zh,
+      catalyst_watch_en, catalyst_watch_zh,
+      tickers, thumbnail_url,
+      published_at, fetched_at, translated_at,
+      fetch_status, translate_status, email_sent
+    ) VALUES (
+      ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+    )
+  `);
+
+  let inserted = 0, skipped = 0;
+  for (const a of articles) {
+    const result = insert.run(
+      a.sa_url, a.sa_article_id, a.title_en, a.title_zh,
+      a.summary_en, a.summary_zh, a.key_points_en, a.key_points_zh,
+      a.full_content_en, a.full_content_zh,
+      a.catalyst_watch_en, a.catalyst_watch_zh,
+      a.tickers, a.thumbnail_url,
+      a.published_at, a.fetched_at, a.translated_at,
+      a.fetch_status, a.translate_status, a.email_sent ?? 1
+    );
+    result.changes > 0 ? inserted++ : skipped++;
+  }
+  res.json({ inserted, skipped });
 });
 
 // GET /api/status — health check
