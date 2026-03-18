@@ -385,12 +385,59 @@ function cleanMarkdown(text) {
     .trim();
 }
 
-// ── Tavily Web Search Fallback ────────────────────────────────────────────────
+// ── Tavily Extract (direct URL scrape — works for fresh articles) ─────────────
+
+async function fetchArticleViaTavilyExtract(url) {
+  if (!process.env.TAVILY_API_KEY) return null;
+
+  console.log(`[fetcher] Trying Tavily extract for: ${url}`);
+  try {
+    const res = await fetch('https://api.tavily.com/extract', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        api_key: process.env.TAVILY_API_KEY,
+        urls: [url.split('?')[0]]  // strip query params
+      })
+    });
+
+    if (!res.ok) {
+      console.log(`[fetcher] Tavily extract HTTP ${res.status}`);
+      return null;
+    }
+
+    const data = await res.json();
+    const result = (data.results || [])[0];
+    if (!result?.raw_content || result.raw_content.length < 500) {
+      console.log('[fetcher] Tavily extract: no usable content');
+      return null;
+    }
+
+    console.log(`[fetcher] Tavily extract: got ${result.raw_content.length} chars`);
+    const cleaned = cleanMarkdown(result.raw_content);
+    const parsed = parseWSBArticle(cleaned);
+    const content = parsed.mainContent || cleaned;
+    return {
+      full_content_en: content,
+      summary_bullets: parsed.summaryBullets || [],
+      catalyst_watch: parsed.catalystWatch || '',
+      tickers: [],
+      thumbnail_url: result.image || '',
+      fetch_status: content.length > 200 ? 'complete' : 'incomplete',
+      is_paywalled: false
+    };
+  } catch (err) {
+    console.log(`[fetcher] Tavily extract failed: ${err.message}`);
+    return null;
+  }
+}
+
+// ── Tavily Search Fallback (works for articles indexed 1-2 days ago) ──────────
 
 async function fetchArticleViaTavily(title, url) {
   if (!process.env.TAVILY_API_KEY) return null;
 
-  console.log(`[fetcher] Trying Tavily fallback for: ${title}`);
+  console.log(`[fetcher] Trying Tavily search for: ${title}`);
   try {
     const res = await fetch('https://api.tavily.com/search', {
       method: 'POST',
@@ -405,13 +452,12 @@ async function fetchArticleViaTavily(title, url) {
     });
 
     if (!res.ok) {
-      console.log(`[fetcher] Tavily HTTP ${res.status}`);
+      console.log(`[fetcher] Tavily search HTTP ${res.status}`);
       return null;
     }
 
     const data = await res.json();
-    const slug = url.split('?')[0].split('/').pop(); // e.g. "4882153-wall-street-breakfast-..."
-    // Only accept results that actually point to this specific article (not SA homepage or other pages)
+    const slug = url.split('?')[0].split('/').pop();
     const results = (data.results || []).filter(r =>
       r.raw_content &&
       r.raw_content.length > 500 &&
@@ -420,15 +466,15 @@ async function fetchArticleViaTavily(title, url) {
     const match = results[0];
 
     if (!match) {
-      console.log('[fetcher] Tavily: no usable results');
+      console.log('[fetcher] Tavily search: no usable results');
       return null;
     }
 
-    console.log(`[fetcher] Tavily: got ${match.raw_content.length} chars from ${match.url}`);
+    console.log(`[fetcher] Tavily search: got ${match.raw_content.length} chars from ${match.url}`);
     const cleaned = cleanMarkdown(match.raw_content);
     const parsed = parseWSBArticle(cleaned);
     const content = parsed.mainContent || cleaned;
-    console.log(`[fetcher] Tavily: parsed to ${content.length} chars of article content`);
+    console.log(`[fetcher] Tavily search: parsed to ${content.length} chars`);
     return {
       title_en: title,
       full_content_en: content,
@@ -440,7 +486,7 @@ async function fetchArticleViaTavily(title, url) {
       is_paywalled: false
     };
   } catch (err) {
-    console.log(`[fetcher] Tavily fallback failed: ${err.message}`);
+    console.log(`[fetcher] Tavily search failed: ${err.message}`);
     return null;
   }
 }
@@ -538,7 +584,8 @@ Return ALL the article content verbatim — every bullet point, company mention,
 // Note: Claude refused to reproduce copyrighted article content so it's excluded
 
 export async function fetchArticleViaWebSearch(title, url) {
-  return (await fetchArticleViaTavily(title, url)) ||
+  return (await fetchArticleViaTavilyExtract(url)) ||
+         (await fetchArticleViaTavily(title, url)) ||
          (await fetchArticleViaGemini(title, url));
 }
 
