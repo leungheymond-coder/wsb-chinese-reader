@@ -281,6 +281,18 @@ export default function App() {
         )}
       </main>
 
+      {/* Footer */}
+      <footer style={{ borderTop: '1px solid rgba(0,0,0,0.08)', marginTop: '40px', background: '#f9f9f9' }}>
+        <div className="max-w-3xl mx-auto px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-2">
+          <span style={{ color: 'rgba(9,10,12,0.4)', fontSize: '12px' }}>
+            {lang === 'zh' ? '© 華爾街早報 · 由 Seeking Alpha 提供原文' : '© Wall Street Morning Post · Source: Seeking Alpha'}
+          </span>
+          <span style={{ color: 'rgba(9,10,12,0.4)', fontSize: '12px' }}>
+            {lang === 'zh' ? '每日自動更新 · 繁體中文（香港）' : 'Auto-updated daily · Traditional Chinese (HK)'}
+          </span>
+        </div>
+      </footer>
+
       <Toaster position="bottom-right" />
     </div>
   )
