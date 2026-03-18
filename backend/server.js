@@ -38,8 +38,12 @@ app.get('/api/articles/:id', (req, res) => {
   });
 });
 
-// POST /api/fetch — manually trigger a fetch+translate run
+// POST /api/fetch — manually trigger a fetch+translate run (protected)
 app.post('/api/fetch', async (req, res) => {
+  const secret = process.env.FETCH_SECRET;
+  if (secret && req.headers['x-fetch-secret'] !== secret) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
   if (isPipelineRunning()) {
     return res.json({ message: 'Pipeline already running — try again shortly' });
   }

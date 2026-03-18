@@ -88,7 +88,12 @@ export default function App() {
     setFetching(true)
     toast.info(lang === 'zh' ? '正在搜尋並翻譯最新文章…' : 'Fetching and translating latest articles…')
     try {
-      await fetch(`${API}/fetch`, { method: 'POST' })
+      await fetch(`${API}/fetch`, {
+        method: 'POST',
+        headers: import.meta.env.VITE_FETCH_SECRET
+          ? { 'x-fetch-secret': import.meta.env.VITE_FETCH_SECRET }
+          : {}
+      })
       setTimeout(() => {
         loadArticles()
         setFetching(false)
