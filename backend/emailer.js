@@ -11,9 +11,9 @@ function buildEmailHTML(articles) {
   const articleBlocks = articles.map(a => {
     const keyPoints = JSON.parse(a.key_points_zh || '[]');
     const kpHTML = keyPoints.length > 0
-      ? `<div style="background:rgba(13,46,95,0.05);border:1px solid rgba(13,46,95,0.15);border-radius:8px;padding:14px 16px;margin:12px 0;">
-          <div style="font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#0D2E5F;margin-bottom:8px;">重點摘要 · Summary</div>
-          <ul style="margin:0;padding-left:16px;">${keyPoints.map(kp => `<li style="margin:5px 0;color:rgba(9,10,12,0.9);font-size:14px;line-height:1.6;">${kp}</li>`).join('')}</ul>
+      ? `<div style="background:rgba(13,46,95,0.05);border:1px solid rgba(13,46,95,0.15);border-radius:8px;padding:10px 12px;margin:8px 0;">
+          <div style="font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#0D2E5F;margin-bottom:6px;">重點摘要 · Summary</div>
+          <ul style="margin:0;padding-left:14px;">${keyPoints.map(kp => `<li style="margin:3px 0;color:rgba(9,10,12,0.9);font-size:13px;line-height:1.5;">${kp}</li>`).join('')}</ul>
         </div>`
       : '';
     const pubDate = a.published_at
@@ -22,12 +22,12 @@ function buildEmailHTML(articles) {
     const appUrl = `${process.env.APP_URL || 'http://localhost:3000'}/#/article/${a.id}`;
 
     return `
-      <div style="border:1px solid rgba(0,0,0,0.1);border-radius:12px;padding:20px 24px;margin-bottom:20px;background:#ffffff;">
-        <div style="color:rgba(9,10,12,0.55);font-size:11px;margin-bottom:10px;">${pubDate} · Seeking Alpha Wall Street Breakfast</div>
-        <h2 style="margin:0 0 4px 0;font-size:20px;font-weight:600;color:#0D2E5F;line-height:1.3;">${a.title_zh || a.title_en}</h2>
-        <div style="color:rgba(9,10,12,0.55);font-size:12px;margin-bottom:14px;">${a.title_en}</div>
+      <div style="border:1px solid rgba(0,0,0,0.1);border-radius:10px;padding:14px 16px;margin-bottom:12px;background:#ffffff;">
+        <div style="color:rgba(9,10,12,0.55);font-size:11px;margin-bottom:6px;">${pubDate} · Seeking Alpha Wall Street Breakfast</div>
+        <h2 style="margin:0 0 3px 0;font-size:17px;font-weight:600;color:#0D2E5F;line-height:1.3;">${a.title_zh || a.title_en}</h2>
+        <div style="color:rgba(9,10,12,0.55);font-size:12px;margin-bottom:10px;">${a.title_en}</div>
         ${kpHTML}
-        <a href="${appUrl}" style="display:inline-block;margin-top:14px;padding:9px 18px;background:#0D2E5F;color:#ffffff;text-decoration:none;border-radius:8px;font-size:13px;font-weight:600;">閱讀全文 →</a>
+        <a href="${appUrl}" style="display:inline-block;margin-top:10px;padding:7px 14px;background:#0D2E5F;color:#ffffff;text-decoration:none;border-radius:7px;font-size:13px;font-weight:600;">閱讀全文 →</a>
       </div>
     `;
   }).join('');
@@ -36,19 +36,19 @@ function buildEmailHTML(articles) {
     <!DOCTYPE html>
     <html>
     <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
-    <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Poppins,sans-serif;background:#f9f9f9;margin:0;padding:24px;">
+    <body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Poppins,sans-serif;background:#f9f9f9;margin:0;padding:12px;">
       <div style="max-width:600px;margin:0 auto;">
-        <div style="background:#0D2E5F;padding:22px 28px;border-radius:12px 12px 0 0;">
-          <div style="color:#f0c020;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;font-style:italic;opacity:0.85;margin-bottom:6px;">Seeking Alpha</div>
-          <h1 style="color:#f0c020;margin:0;font-size:26px;font-weight:700;font-style:italic;letter-spacing:-0.5px;">華爾街早報</h1>
-          <div style="color:rgba(255,255,255,0.6);font-size:12px;margin-top:4px;">Wall Street Breakfast · 繁體中文翻譯</div>
+        <div style="background:#0D2E5F;padding:14px 16px;border-radius:10px 10px 0 0;">
+          <div style="color:#f0c020;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;font-style:italic;opacity:0.85;margin-bottom:4px;">Seeking Alpha</div>
+          <h1 style="color:#f0c020;margin:0;font-size:22px;font-weight:700;font-style:italic;letter-spacing:-0.5px;">華爾街早報</h1>
+          <div style="color:rgba(255,255,255,0.6);font-size:11px;margin-top:2px;">Wall Street Breakfast · 繁體中文翻譯</div>
         </div>
-        <div style="background:#f9f9f9;padding:24px 28px;border-radius:0 0 12px 12px;border:1px solid rgba(0,0,0,0.08);border-top:none;">
-          <p style="color:rgba(9,10,12,0.9);margin:0 0 20px 0;font-size:14px;">
+        <div style="background:#f9f9f9;padding:14px 16px;border-radius:0 0 10px 10px;border:1px solid rgba(0,0,0,0.08);border-top:none;">
+          <p style="color:rgba(9,10,12,0.9);margin:0 0 12px 0;font-size:13px;">
             ${articles.length === 1 ? '有 1 篇新文章已翻譯完成，請閱覽：' : `有 ${articles.length} 篇新文章已翻譯完成，請閱覽：`}
           </p>
           ${articleBlocks}
-          <div style="color:rgba(9,10,12,0.35);font-size:11px;margin-top:20px;text-align:center;">
+          <div style="color:rgba(9,10,12,0.35);font-size:11px;margin-top:12px;text-align:center;">
             由 Claude AI 翻譯 · 嚴格遵守原文 · 不添加推測內容
           </div>
         </div>
