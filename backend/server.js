@@ -6,10 +6,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { existsSync } from 'fs';
 import { getAllArticles, getArticleById } from './db.js';
-import { discoverAndFetchNew } from './fetcher.js';
-import { translatePending } from './translator.js';
-import { notifyPending } from './emailer.js';
-import { startScheduler } from './scheduler.js';
+import { startScheduler, runPipeline, isPipelineRunning } from './scheduler.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -43,15 +40,11 @@ app.get('/api/articles/:id', (req, res) => {
 
 // POST /api/fetch — manually trigger a fetch+translate run
 app.post('/api/fetch', async (req, res) => {
-  res.json({ message: 'Fetch pipeline started' });
-  // Run async, don't block response
-  try {
-    await discoverAndFetchNew();
-    await translatePending();
-    await notifyPending();
-  } catch (err) {
-    console.error('[server] Manual fetch error:', err);
+  if (isPipelineRunning()) {
+    return res.json({ message: 'Pipeline already running — try again shortly' });
   }
+  res.json({ message: 'Fetch pipeline started' });
+  runPipeline('manual');
 });
 
 // GET /api/status — health check
