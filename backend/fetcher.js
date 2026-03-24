@@ -308,7 +308,14 @@ function parseWSBArticle(rawText) {
     /via (Getty Images|iStock|Shutterstock|AP Photo|Reuters|Bloomberg)/i.test(l) ||
     /©/.test(l) ||
     /^\d+$/.test(l) ||
-    /\(\d{2}:\d{2}\)$/.test(l)
+    /\(\d{2}:\d{2}\)$/.test(l) ||
+    // SA boilerplate / anti-bot / UI strings
+    /Seeking Alpha'?s flagship daily business newsletter/i.test(l) ||
+    /please enable Javascript and cookies/i.test(l) ||
+    /Is this happening to you frequently\? Please report it/i.test(l) ||
+    /If you have an ad.?blocker enabled/i.test(l) ||
+    /Please disable your ad.?blocker and refresh/i.test(l) ||
+    /Entering text into the input field will update the search result/i.test(l)
   );
 
   const summaryIdx    = lines.findIndex(l => l === 'Summary');
