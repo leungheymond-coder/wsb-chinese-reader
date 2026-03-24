@@ -3,6 +3,7 @@
 import { config as dotenvConfig } from 'dotenv'; dotenvConfig({ override: true });
 import Anthropic from '@anthropic-ai/sdk';
 import { getPendingTranslations, updateTranslation, updateKeyPointsEn } from './db.js';
+import { scanAndAlert } from './alerter.js';
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -260,6 +261,12 @@ export async function translateArticle(article) {
     });
 
     console.log(`[translator] ✓ Translated: ${titleZh}`);
+
+    // Fire ticker alerts for this article (non-blocking)
+    scanAndAlert(article.id).catch(err =>
+      console.error('[translator] Alert scan error:', err.message)
+    );
+
     return true;
 
   } catch (err) {

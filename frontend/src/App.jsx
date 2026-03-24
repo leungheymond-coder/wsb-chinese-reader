@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
+import { useUser, useAuth, SignInButton, UserButton } from '@clerk/clerk-react'
 import ArticleList from './components/ArticleList'
 import ArticleDetail from './components/ArticleDetail'
+import WatchlistPanel from './components/WatchlistPanel'
 import { IconRefresh } from '@tabler/icons-react'
 import { NAVY, GOLD } from './tokens'
 import { Button } from '@/components/ui/button'
@@ -11,6 +13,8 @@ import { toast } from 'sonner'
 const API = '/api'
 
 export default function App() {
+  const { isSignedIn, user } = useUser()
+  const { getToken } = useAuth()
   const [articles, setArticles] = useState([])
   const [loading, setLoading] = useState(true)
   const [currentArticle, setCurrentArticle] = useState(null)
@@ -18,6 +22,21 @@ export default function App() {
   const [fetching, setFetching] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 640)
+  const [showWatchlist, setShowWatchlist] = useState(false)
+
+  // Sync user email to our DB on login
+  useEffect(() => {
+    if (!isSignedIn || !user) return
+    const email = user.primaryEmailAddress?.emailAddress
+    if (!email) return
+    getToken().then(token =>
+      fetch('/api/auth/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ email })
+      })
+    ).catch(() => {})
+  }, [isSignedIn, user])
 
   useEffect(() => {
     loadArticles().then(() => {
@@ -130,138 +149,102 @@ export default function App() {
           transition: 'height 0.45s cubic-bezier(0.4, 0, 0.2, 1)',
         }}
       >
-        {/* ── Expanded hero panel ── */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            padding: isMobile ? '0 16px 20px' : '0 24px 28px',
-            opacity: isExpanded ? 1 : 0,
-            transform: isExpanded ? 'translateY(0)' : 'translateY(12px)',
-            transition: 'opacity 0.3s ease, transform 0.35s ease',
-            pointerEvents: isExpanded ? 'auto' : 'none',
-          }}
-        >
+        {/* ── Persistent top strip — always visible ── */}
+        <div style={{
+          position: 'absolute', top: 0, left: 0, right: 0, height: '67px',
+          display: 'flex', alignItems: 'center', padding: '0 24px', zIndex: 2,
+        }}>
+          <div style={{ maxWidth: '768px', margin: '0 auto', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+
+            {/* Left: brand — fades out when hero is expanded */}
+            <div style={{
+              display: 'flex', flexDirection: 'column', lineHeight: 1.2,
+              opacity: isExpanded ? 0 : 1,
+              transition: 'opacity 0.3s ease',
+              pointerEvents: isExpanded ? 'none' : 'auto',
+            }}>
+              <span style={{ color: GOLD, fontSize: '10px', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase', fontStyle: 'italic', opacity: 0.8 }}>
+                Seeking Alpha
+              </span>
+              <span style={{ fontFamily: "'Sharp Grotesk', sans-serif", fontWeight: 600, fontStyle: 'italic', fontSize: '18px', color: GOLD, letterSpacing: '-0.3px' }}>
+                {lang === 'zh' ? '華爾街早報' : 'Wall Street Morning Post'}
+              </span>
+            </div>
+
+            {/* Right: date + auth + watchlist + language — always visible */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginLeft: 'auto' }}>
+              {latestDate && (
+                <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)', display: 'none' }} className="sm:!block">
+                  {lang === 'zh' ? `更新：${latestDate}` : `Updated: ${latestDate}`}
+                </span>
+              )}
+              {isSignedIn ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <button
+                    onClick={() => setShowWatchlist(v => !v)}
+                    style={{
+                      background: 'rgba(240,192,32,0.15)', border: '1px solid rgba(240,192,32,0.4)',
+                      color: GOLD, borderRadius: '6px', padding: '4px 10px',
+                      fontSize: '12px', fontWeight: 600, cursor: 'pointer'
+                    }}
+                  >
+                    {lang === 'zh' ? '🔔 自選股' : '🔔 Watchlist'}
+                  </button>
+                  <UserButton afterSignOutUrl="/" />
+                </div>
+              ) : (
+                <SignInButton mode="modal">
+                  <button style={{
+                    background: GOLD, color: '#1a1f3a', borderRadius: '6px',
+                    padding: '4px 12px', fontSize: '12px', fontWeight: 700,
+                    border: 'none', cursor: 'pointer'
+                  }}>
+                    {lang === 'zh' ? '登入' : 'Sign in'}
+                  </button>
+                </SignInButton>
+              )}
+              <ToggleGroup
+                type="single" value={lang} onValueChange={(v) => v && setLang(v)}
+                style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '8px', padding: '4px', height: '32px', gap: 0 }}
+              >
+                <ToggleGroupItem value="zh" style={{ fontSize: '12px', fontWeight: 600, borderRadius: '6px', height: '24px', padding: '0 12px', background: lang === 'zh' ? 'white' : 'transparent', color: lang === 'zh' ? NAVY : 'white' }}>中文繁體</ToggleGroupItem>
+                <ToggleGroupItem value="en" style={{ fontSize: '12px', fontWeight: 600, borderRadius: '6px', height: '24px', padding: '0 12px', background: lang === 'en' ? 'white' : 'transparent', color: lang === 'en' ? NAVY : 'white' }}>EN</ToggleGroupItem>
+              </ToggleGroup>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Expanded hero panel — big title at bottom ── */}
+        <div style={{
+          position: 'absolute', bottom: 0, left: 0, right: 0,
+          padding: isMobile ? '0 16px 20px' : '0 24px 28px',
+          opacity: isExpanded ? 1 : 0,
+          transform: isExpanded ? 'translateY(0)' : 'translateY(12px)',
+          transition: 'opacity 0.3s ease, transform 0.35s ease',
+          pointerEvents: isExpanded ? 'auto' : 'none',
+        }}>
           <div style={{ maxWidth: '768px', margin: '0 auto' }}>
-            {/* Source label + rule */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
               <span style={{ color: GOLD, fontSize: '11px', fontWeight: 600, letterSpacing: '1.2px', textTransform: 'uppercase', opacity: 0.8, fontStyle: 'italic' }}>
                 Seeking Alpha
               </span>
               <div style={{ flex: 1, height: '1px', background: 'rgba(240,192,32,0.25)' }} />
             </div>
-
-            {/* Main title */}
             <h1 style={{
-              fontFamily: "'Sharp Grotesk', sans-serif",
-              fontWeight: 600,
-              fontStyle: 'italic',
-              fontSize: isMobile ? '40px' : '64px',
-              lineHeight: 1.05,
-              color: GOLD,
-              margin: 0,
-              letterSpacing: '-1px',
+              fontFamily: "'Sharp Grotesk', sans-serif", fontWeight: 600, fontStyle: 'italic',
+              fontSize: isMobile ? '40px' : '64px', lineHeight: 1.05,
+              color: GOLD, margin: 0, letterSpacing: '-1px',
             }}>
               {lang === 'zh' ? '華爾街早報' : 'Wall Street Morning Post'}
             </h1>
           </div>
         </div>
-
-        {/* ── Compact header panel ── */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '67px',
-            display: 'flex',
-            alignItems: 'center',
-            padding: '0 24px',
-            opacity: isExpanded ? 0 : 1,
-            transform: isExpanded ? 'translateY(-8px)' : 'translateY(0)',
-            transition: 'opacity 0.3s ease 0.05s, transform 0.35s ease',
-          }}
-        >
-          <div style={{ maxWidth: '768px', margin: '0 auto', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            {/* Left: brand */}
-            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
-              <span style={{ color: GOLD, fontSize: '10px', fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase', fontStyle: 'italic', opacity: 0.8 }}>
-                Seeking Alpha
-              </span>
-              <span style={{
-                fontFamily: "'Sharp Grotesk', sans-serif",
-                fontWeight: 600,
-                fontStyle: 'italic',
-                fontSize: '18px',
-                color: GOLD,
-                letterSpacing: '-0.3px',
-              }}>
-                {lang === 'zh' ? '華爾街早報' : 'Wall Street Morning Post'}
-              </span>
-            </div>
-
-            {/* Right: updated date + language toggle */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              {latestDate && (
-                <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)', display: 'none' }} className="sm:!block">
-                  {lang === 'zh' ? `更新：${latestDate}` : `Updated: ${latestDate}`}
-                </span>
-              )}
-              {/* Language toggle — dark bg variant */}
-              <ToggleGroup
-                type="single"
-                value={lang}
-                onValueChange={(v) => v && setLang(v)}
-                style={{ background: 'rgba(255,255,255,0.15)', borderRadius: '8px', padding: '4px', height: '32px', gap: 0 }}
-              >
-                <ToggleGroupItem
-                  value="zh"
-                  style={{
-                    fontSize: '12px', fontWeight: 600, borderRadius: '6px', height: '24px', padding: '0 12px',
-                    background: lang === 'zh' ? 'white' : 'transparent',
-                    color: lang === 'zh' ? NAVY : 'white',
-                  }}
-                >
-                  中文繁體
-                </ToggleGroupItem>
-                <ToggleGroupItem
-                  value="en"
-                  style={{
-                    fontSize: '12px', fontWeight: 600, borderRadius: '6px', height: '24px', padding: '0 12px',
-                    background: lang === 'en' ? 'white' : 'transparent',
-                    color: lang === 'en' ? NAVY : 'white',
-                  }}
-                >
-                  EN
-                </ToggleGroupItem>
-              </ToggleGroup>
-            </div>
-          </div>
-        </div>
       </header>
 
-      {/* Controls bar — local dev only (hidden in production) */}
-      {!currentArticle && import.meta.env.VITE_SHOW_FETCH_BUTTON === 'true' && (
-        <div style={{ background: '#f9f9f9', borderBottom: '1px solid rgba(0,0,0,0.08)' }}>
-          <div className="max-w-3xl mx-auto px-4 py-[8px] flex items-center justify-between gap-2 flex-wrap">
-            <Button
-              onClick={triggerFetch}
-              disabled={fetching}
-              size="sm"
-              className="bg-black text-[#fbfeff] text-[12px] rounded-[8px] hover:bg-black/80"
-            >
-              <IconRefresh size={14} className={fetching ? 'animate-spin' : ''} />
-              {fetching
-                ? (lang === 'zh' ? '抓取中…' : 'Fetching…')
-                : (lang === 'zh' ? '抓取並翻譯最新文章' : 'Fetch & Translate Latest')}
-            </Button>
-            <span className="text-[rgba(0,0,0,0.55)] text-[11px]">
-              {lang === 'zh' ? '自動抓取：每日 上午 7:30 (EST)' : 'Auto-fetch: daily 7:30 AM EST'}
-            </span>
-          </div>
+      {/* Watchlist panel — fixed below sticky header, always visible when open */}
+      {isSignedIn && showWatchlist && (
+        <div style={{ position: 'fixed', top: '67px', left: 0, right: 0, zIndex: 60, boxShadow: '0 4px 12px rgba(0,0,0,0.12)' }}>
+          <WatchlistPanel lang={lang} onClose={() => setShowWatchlist(false)} />
         </div>
       )}
 

@@ -6,6 +6,7 @@ import path from 'path'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   root: 'frontend',
+  envDir: path.resolve(__dirname), // read .env from project root
   build: {
     outDir: 'dist',
   },

@@ -42,6 +42,29 @@ db.exec(`
   try { db.exec(`ALTER TABLE articles ADD COLUMN ${col} TEXT DEFAULT ''`); } catch {}
 });
 
+// Users table — synced from Clerk on first login
+db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    clerk_user_id TEXT PRIMARY KEY,
+    email TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now'))
+  );
+`);
+
+// Watchlists table — tickers followed per user
+db.exec(`
+  CREATE TABLE IF NOT EXISTS watchlists (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    clerk_user_id TEXT NOT NULL,
+    ticker TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now')),
+    UNIQUE(clerk_user_id, ticker),
+    FOREIGN KEY(clerk_user_id) REFERENCES users(clerk_user_id)
+  );
+`);
+
+db.exec(`CREATE INDEX IF NOT EXISTS idx_watchlists_user ON watchlists(clerk_user_id);`);
+
 // Indexes
 db.exec(`
   CREATE INDEX IF NOT EXISTS idx_published_at ON articles(published_at DESC);
@@ -114,6 +137,51 @@ export function updateTranslation(id, data) {
 
 export function updateKeyPointsEn(id, keyPointsJson) {
   return db.prepare(`UPDATE articles SET key_points_en = ? WHERE id = ?`).run(keyPointsJson, id);
+}
+
+// ── User helpers ─────────────────────────────────────────────────────────────
+
+export function upsertUser(clerkUserId, email) {
+  return db.prepare(`
+    INSERT INTO users (clerk_user_id, email)
+    VALUES (?, ?)
+    ON CONFLICT(clerk_user_id) DO UPDATE SET email = excluded.email
+  `).run(clerkUserId, email);
+}
+
+export function getUserByClerkId(clerkUserId) {
+  return db.prepare(`SELECT * FROM users WHERE clerk_user_id = ?`).get(clerkUserId);
+}
+
+// ── Watchlist helpers ─────────────────────────────────────────────────────────
+
+export function getWatchlist(clerkUserId) {
+  return db.prepare(`
+    SELECT ticker, created_at FROM watchlists
+    WHERE clerk_user_id = ?
+    ORDER BY created_at DESC
+  `).all(clerkUserId);
+}
+
+export function addToWatchlist(clerkUserId, ticker) {
+  return db.prepare(`
+    INSERT OR IGNORE INTO watchlists (clerk_user_id, ticker)
+    VALUES (?, ?)
+  `).run(clerkUserId, ticker.toUpperCase().trim());
+}
+
+export function removeFromWatchlist(clerkUserId, ticker) {
+  return db.prepare(`
+    DELETE FROM watchlists WHERE clerk_user_id = ? AND ticker = ?
+  `).run(clerkUserId, ticker.toUpperCase().trim());
+}
+
+export function getAllWatchlistsWithEmail() {
+  return db.prepare(`
+    SELECT w.clerk_user_id, w.ticker, u.email
+    FROM watchlists w
+    JOIN users u ON w.clerk_user_id = u.clerk_user_id
+  `).all();
 }
 
 export function markEmailSent(id) {
